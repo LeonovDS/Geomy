@@ -1,12 +1,20 @@
 package com.yshmgrt.school.model
 
 import com.yshmgrt.school.util.P2D
+import javafx.beans.property.SimpleObjectProperty
+import javafx.beans.property.SimpleStringProperty
 import javafx.scene.canvas.GraphicsContext
 import tornadofx.*
+import tornadofx.getValue
+import tornadofx.setValue
 
 open class Shape() {
-    var src = listOf<P2D>()
-    var name = ""
+    val srcProperty = SimpleObjectProperty<List<P2D>>(listOf())
+    var src by srcProperty
+
+    val nameProperty = SimpleStringProperty("")
+    var name by nameProperty
+
 
     constructor(src : List<P2D>, name : String = "") : this(){
         this.name = name
