@@ -9,8 +9,10 @@ import tornadofx.*
  * @property shapes List of all shapes.
  * */
 class GeoController : Controller() {
-    var shapes = mutableListOf(
-            Shape(listOf(P2D(0.0, 0.0)), "A"),
-            Shape(listOf(P2D(1.1, 2.2), P2D(1.3, 2.4)), "AB")
-    ).observable()
+    var shapes = observableList(
+            Shape(observableList(P2D(0.0, 0.0)), "A"),
+            Shape(observableList(P2D(1.1, 2.2), P2D(1.3, 2.4), P2D(3.0, 0.0)), "AB")
+    ).observable().onChange {
+        println("ch")
+    }
 }
