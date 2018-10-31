@@ -33,6 +33,16 @@ class GeometryCanvas(val controller: GeoController) : Canvas() {
                     yMax = max(yMax, it.y)
                 }
             }
+            if (xMin == xMax)
+            {
+                xMin -= 1
+                xMax += 1
+            }
+            if (yMin == yMax)
+            {
+                yMin -= 1
+                yMax += 1
+            }
         }
         val width = xMax - xMin
         val height = yMax - yMin
