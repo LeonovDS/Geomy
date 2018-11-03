@@ -1,20 +1,23 @@
 package com.yshmgrt.school.view
 
 import com.yshmgrt.school.controller.GeoController
-import com.yshmgrt.school.model.Shape
+import com.yshmgrt.school.model.IShape
+import com.yshmgrt.school.model.Polyline
 import com.yshmgrt.school.model.ShapeModel
-import com.yshmgrt.school.util.P2D
+import com.yshmgrt.school.util.*
 import javafx.scene.control.ListView
-import javafx.scene.control.TreeItem
+import javafx.scene.layout.HBox
 import tornadofx.*
 
 
 class MainView : View("Hello TornadoFX") {
 
-    val controller : GeoController by inject()
-    val model = ShapeModel()
+    private val controller : GeoController by inject()
+    private val model = ShapeModel()
     var canvas : GeometryCanvas by singleAssign()
-    var list : ListView<Shape> by singleAssign()
+    var list : ListView<IShape> by singleAssign()
+    var fragment : Fragment? = null
+    lateinit var hb : HBox
 
     override val root = vbox {
         menubar {
@@ -22,7 +25,7 @@ class MainView : View("Hello TornadoFX") {
                 item("Bar")
             }
         }
-        hbox {
+        hb = hbox {
             vbox {
                 list = listview(controller.shapes) {
                     cellFormat { shape ->
@@ -30,50 +33,21 @@ class MainView : View("Hello TornadoFX") {
                             label(shape.nameProperty)
                             button("Delete").action {
                                 controller.shapes.remove(index, index + 1)
-                                update()
+                                updateLists()
                             }
+                            setOnMouseClicked { updateLists() }
                         }
-                    }
-                    onUserSelect {
-                        update()
                     }
                     bindSelected(model)
                 }
-                button("Add").action {
-                    controller.shapes.add(Shape(observableList(P2D())))
-                    update()
-                }
-            }
-            form {
-                fieldset("Shape") {
-                    field("Name") {textfield(model.name)}
-                }
-                listview(model.src) {
-                    cellFormat {p ->
-                        graphic = fieldset("Point") {
-                            field("x: ") {textfield().bind(p.xProperty)}
-                            field("y: ") {textfield().bind(p.yProperty)}
-                            hbox {
-                                button("Add").action {
-                                    model.src.value.add(P2D())
-                                    update()
-                                }
-                                button("Delete").action {
-                                    model.src.value.remove(index, index + 1)
-                                    update()
-                                }
-                            }
+                hbox {
+                    vbox {
+                        button("Add").action {
+                            controller.shapes.add(Polyline(observableList(P2D())))
+                            updateLists()
                         }
-                    }
-                }
-                fieldset {
-                    hbox {
-                        button("Save").action {
-                            model.commit()
-                            update()
-                        }
-                        button("Cancel").action {
-                            model.rollback()
+                        hbox {
+
                         }
                     }
                 }
@@ -81,15 +55,32 @@ class MainView : View("Hello TornadoFX") {
             vbox {
                 canvas = GeometryCanvas(controller)
                 add(canvas)
-                update()
             }
         }
-        update()
+        updateLists()
     }
 
-    private fun update() = canvas.apply{
-        updateBounds()
-        drawShapes()
+    init {
+        subscribe<UpdateCanvasEvent> {
+            updateCanvas()
+        }
+        subscribe<UpdateListsEvent> {
+            updateLists()
+        }
+    }
+
+    private fun updateLists() = runLater {
+        updateCanvas()
         list.refresh()
+        fragment?.removeFromParent()
+        fragment = model.item?.getForm() ?: EmptyFragment()
+        hb.add(fragment!!)
+    }
+
+    private fun updateCanvas() = runLater {
+        canvas.apply {
+            updateBounds()
+            drawShapes()
+        }
     }
 }

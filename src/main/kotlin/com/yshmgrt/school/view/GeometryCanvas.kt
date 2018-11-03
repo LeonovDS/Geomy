@@ -7,7 +7,7 @@ import javafx.scene.paint.Color
 import java.lang.Double.max
 import java.lang.Double.min
 
-class GeometryCanvas(val controller: GeoController) : Canvas() {
+class GeometryCanvas(private val controller: GeoController) : Canvas() {
 
     private var xMin = 0.0
     private var xMax = 0.0
@@ -20,18 +20,17 @@ class GeometryCanvas(val controller: GeoController) : Canvas() {
     fun updateBounds() {
         with(controller) {
             if (shapes.size > 0) {
-                xMin = shapes[0].src[0].x
-                xMax = shapes[0].src[0].x
-                yMin = shapes[0].src[0].y
-                yMax = shapes[0].src[0].y
+                xMin = shapes[0].xMin()
+                xMax = shapes[0].xMax()
+                yMin = shapes[0].yMin()
+                yMax = shapes[0].yMax()
             }
-            shapes.forEach { i ->
-                i.src.forEach {
-                    xMin = min(xMin, it.x)
-                    xMax = max(xMax, it.x)
-                    yMin = min(yMin, it.y)
-                    yMax = max(yMax, it.y)
-                }
+            shapes.forEach { it ->
+                xMin = min(xMin, it.xMin())
+                xMax = max(xMax, it.xMax())
+                yMin = min(yMin, it.yMin())
+                yMax = max(yMax, it.yMax())
+
             }
             if (xMin == xMax)
             {
