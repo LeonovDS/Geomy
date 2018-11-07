@@ -1,13 +1,16 @@
 package com.yshmgrt.school.view
 
+import com.yshmgrt.school.app.Styles
 import com.yshmgrt.school.controller.GeoController
 import com.yshmgrt.school.model.IShape
 import com.yshmgrt.school.model.Point
 import com.yshmgrt.school.model.ShapeModel
 import com.yshmgrt.school.util.*
 import javafx.geometry.Orientation
+import javafx.geometry.Pos
 import javafx.geometry.Side
 import javafx.scene.control.ListView
+import javafx.scene.image.Image
 import javafx.scene.layout.HBox
 import tornadofx.*
 import kotlin.reflect.full.createInstance
@@ -23,8 +26,6 @@ class MainView : View("Hello TornadoFX") {
     private lateinit var hb : HBox
 
     override val root = vbox {
-        minHeight = 600.0
-        minWidth = 1000.0
         menubar {
             menu("File") {
                 item("New").action {
@@ -41,31 +42,26 @@ class MainView : View("Hello TornadoFX") {
         }
         hb = hbox {
             drawer(side = Side.LEFT) {
+                minWidth = 200.0
                 item("Shapes") {
-                    vbox {
-                        list = listview(controller.shapes) {
-                            cellFormat { shape ->
-                                graphic = vbox {
-                                    label(shape.nameProperty)
-                                    button("Delete").action {
-                                        controller.shapes.remove(index, index + 1)
-                                        updateLists()
-                                    }
-                                    setOnMouseClicked { updateLists() }
+                    list = listview(controller.shapes) {
+                        addClass(Styles.listStyle)
+                        cellFormat { shape ->
+                            graphic = hbox {
+                                label(shape.nameProperty).addClass(Styles.listStyle).apply {
+                                    alignment = Pos.CENTER_LEFT
                                 }
-                            }
-                            bindSelected(model)
-                        }
-                        hbox {
-                            vbox {
-                                button("The tester").action {
-                                    ChooseMenuView { it is Point }.apply {
-                                        openModal(block = true)
-                                        print(output()?.name?.value ?: "Cancel")
-                                    }
+                                imageview(Image("delete.png")).setOnMouseClicked {
+                                    controller.shapes.remove(index, index + 1)
+                                    updateLists()
+                                }.apply {
+                                    alignment = Pos.CENTER_RIGHT
                                 }
+                                setOnMouseClicked { updateLists() }
                             }
                         }
+                        bindSelected(model)
+                        isFillHeight = true
                     }
                 }
                 item("Solvers") {
@@ -76,6 +72,7 @@ class MainView : View("Hello TornadoFX") {
                         onUserSelect(clickCount = 1) {
                             changeFragment(it.createInstance().draw())
                         }
+                        addClass(Styles.listStyle)
                     }
                 }
             }
@@ -83,6 +80,7 @@ class MainView : View("Hello TornadoFX") {
                 canvas = GeometryCanvas(controller)
                 add(canvas)
                 listview(types.values.toList().observable()) {
+                    addClass(Styles.listStyle)
                     orientation = Orientation.HORIZONTAL
                     cellFormat {
                         graphic = button(item?.simpleName ?: "") {
@@ -135,7 +133,7 @@ class MainView : View("Hello TornadoFX") {
         updateLists()
     }
 
-    fun changeFragment(f : Fragment?) {
+    private fun changeFragment(f : Fragment?) {
         fragment?.removeFromParent()
         fragment = f ?: EmptyFragment()
         hb.add(fragment!!)
