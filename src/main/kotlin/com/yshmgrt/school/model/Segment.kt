@@ -11,8 +11,33 @@ import tornadofx.getValue
 import tornadofx.setValue
 import java.lang.Double.max
 import java.lang.Double.min
+import javax.json.JsonObject
 
 class Segment() : IShape {
+    override val type: String
+        get() = "segment"
+
+    override fun toJSON(json: JsonBuilder) {
+        with(json) {
+            add("type", type)
+            add("name", name)
+            add("x1", x1)
+            add("y1", y1)
+            add("x2", x2)
+            add("y2", y2)
+        }
+    }
+
+    override fun updateModel(json: JsonObject) {
+        with(json) {
+            name = string("name") ?: ""
+            x1 = double("x1") ?: 0.0
+            x2 = double("x2") ?: 0.0
+            y1 = double("y1") ?: 0.0
+            y2 = double("y2") ?: 0.0
+        }
+    }
+
     override fun xMin() = min(x1, x2)
     override fun xMax() = max(x1, x2)
     override fun yMin() = min(y1, y2)
@@ -20,7 +45,7 @@ class Segment() : IShape {
 
     override fun getForm() = object : Fragment() {
         override val root = form {
-            fieldset("Polyline") {
+            fieldset("Segment") {
                 field("Name") {
                     textfield().apply {
                         bind(nameProperty)

@@ -1,7 +1,6 @@
 package com.yshmgrt.school.util
 
 import javafx.scene.control.TextField
-import tornadofx.*
 
 fun TextField.onTextChange(f : () -> Unit) {
     setOnKeyPressed { _ ->

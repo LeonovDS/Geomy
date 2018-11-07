@@ -10,8 +10,29 @@ import javafx.scene.canvas.GraphicsContext
 import tornadofx.*
 import tornadofx.getValue
 import tornadofx.setValue
+import javax.json.JsonObject
+
 
 class Polyline() : IShape {
+
+    override val type: String
+        get() = "polyline"
+
+    override fun toJSON(json: JsonBuilder) {
+        with(json) {
+            add("type", type)
+            add("name", name)
+            add("src", src)
+        }
+    }
+
+    override fun updateModel(json: JsonObject) {
+        with(json) {
+            name = string("name") ?: ""
+            src.setAll(getJsonArray("src").toModel())
+        }
+    }
+
     override fun xMin() = src.map {it -> it.x}.min() ?: 0.0
     override fun xMax() = src.map {it -> it.x}.max() ?: 0.0
     override fun yMin() = src.map {it -> it.y}.min() ?: 0.0
@@ -25,6 +46,11 @@ class Polyline() : IShape {
                         bind(nameProperty)
                         //onTextChange { updateLists() }
                     }
+                }
+            }
+            fieldset{
+                button("Add").action {
+                    src.add(0, P2D())
                 }
             }
             listview(src) {
@@ -46,7 +72,7 @@ class Polyline() : IShape {
                         }
                         hbox {
                             button("Add").action {
-                                src.add(P2D())
+                                src.add(index + 1, P2D())
                                 updateLists()
                             }
                             button("Delete").action {

@@ -1,19 +1,18 @@
 package com.yshmgrt.school.model
 
 import com.yshmgrt.school.util.P2D
-import com.yshmgrt.school.util.*
+import com.yshmgrt.school.util.onFocusChanged
+import com.yshmgrt.school.util.onTextChange
+import com.yshmgrt.school.util.updateCanvas
 import javafx.beans.property.SimpleDoubleProperty
 import javafx.beans.property.SimpleStringProperty
-import javafx.collections.ObservableList
 import javafx.scene.canvas.GraphicsContext
 import tornadofx.*
-import tornadofx.getValue
-import tornadofx.setValue
 import javax.json.JsonObject
+import kotlin.math.abs
 
-class Point() : IShape {
-    override val type: String
-        get() = "point"
+class Circle() : IShape {
+    override val type = "circle"
 
     override fun toJSON(json: JsonBuilder) {
         with(json) {
@@ -21,6 +20,7 @@ class Point() : IShape {
             add("name", name)
             add("x", x)
             add("y", y)
+            add("r", r)
         }
     }
 
@@ -29,16 +29,18 @@ class Point() : IShape {
             name = string("name") ?: ""
             x = double("x") ?: 0.0
             y = double("y") ?: 0.0
+            r = double("yr") ?: 0.0
         }
     }
-    override fun xMin() = x
-    override fun xMax() = x
-    override fun yMin() = y
-    override fun yMax() = y
+
+    override fun xMin() = x - r
+    override fun xMax() = x + r
+    override fun yMin() = y - r
+    override fun yMax() = y + r
 
     override fun getForm() = object : Fragment() {
         override val root = form {
-            fieldset("Point") {
+            fieldset("Circle") {
                 field("Name") {
                     textfield().apply {
                         bind(nameProperty)
@@ -62,41 +64,49 @@ class Point() : IShape {
                     }
                 }
             }
+            fieldset {
+                field("r: ") {
+                    textfield {
+                        bind(rProperty)
+                        onTextChange { updateCanvas() }
+                        onFocusChanged { updateCanvas() }
+                    }
+                }
+            }
         }
     }
+
 
     override fun create() = Point()
 
     var xProperty = SimpleDoubleProperty(0.0)
     var yProperty = SimpleDoubleProperty(0.0)
+    var rProperty = SimpleDoubleProperty(0.0)
 
     var x : Double by xProperty
     var y : Double by yProperty
-
-
+    var r : Double by rProperty
 
     override val nameProperty = SimpleStringProperty("")
     override var name : String by nameProperty
 
-
-    constructor(src : ObservableList<P2D>, name : String = "") : this(){
+    constructor(x : Double, y : Double, r : Double, name : String = "") : this(){
         this.name = name
-        if (src.size > 0) {
-            x = src[0].x
-            y = src[0].y
-        }
+        this.x = x
+        this.y = y
+        this.r = r
     }
 
-    constructor(p : P2D, name : String = "") : this(){
-        this.name = name
-        x = p.x
-        y = p.y
+    override fun transform(f : (P2D) -> P2D) : Circle {
+        val x = f(P2D(this.x, this.y)).x
+        val y = f(P2D(this.x, this.y)).y
+        val x1 = f(P2D(this.x - r, this.y)).x
+        return Circle(x, y, abs(x - x1), name)
     }
-
-    override fun transform(f : (P2D) -> P2D) = Point(f(P2D(x, y)), name)
 
     override fun draw(parent : GraphicsContext) = with(parent) {
         fill = c(0.0, 0.0, 0.0)
         fillOval(x - 3, y - 3, 6.0, 6.0)
+        strokeOval(x - r / 2, y - r / 2, r, r)
     }
 }
