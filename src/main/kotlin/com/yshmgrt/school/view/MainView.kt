@@ -2,10 +2,11 @@ package com.yshmgrt.school.view
 
 import com.yshmgrt.school.controller.GeoController
 import com.yshmgrt.school.model.IShape
-import com.yshmgrt.school.model.Polyline
+import com.yshmgrt.school.model.Point
 import com.yshmgrt.school.model.ShapeModel
 import com.yshmgrt.school.util.*
 import javafx.geometry.Orientation
+import javafx.geometry.Side
 import javafx.scene.control.ListView
 import javafx.scene.layout.HBox
 import tornadofx.*
@@ -39,29 +40,41 @@ class MainView : View("Hello TornadoFX") {
             }
         }
         hb = hbox {
-            vbox {
-                list = listview(controller.shapes) {
-                    cellFormat { shape ->
-                        graphic = vbox {
-                            label(shape.nameProperty)
-                            button("Delete").action {
-                                controller.shapes.remove(index, index + 1)
-                                updateLists()
-                            }
-                            setOnMouseClicked { updateLists() }
-                        }
-                    }
-                    bindSelected(model)
-                }
-                hbox {
+            drawer(side = Side.LEFT) {
+                item("Shapes") {
                     vbox {
-                        button("Add").action {
-                            controller.shapes.add(Polyline(observableList(P2D())))
-                            print(controller.shapes[controller.shapes.size - 1].toJSON().toString())
-                            updateLists()
+                        list = listview(controller.shapes) {
+                            cellFormat { shape ->
+                                graphic = vbox {
+                                    label(shape.nameProperty)
+                                    button("Delete").action {
+                                        controller.shapes.remove(index, index + 1)
+                                        updateLists()
+                                    }
+                                    setOnMouseClicked { updateLists() }
+                                }
+                            }
+                            bindSelected(model)
                         }
                         hbox {
-
+                            vbox {
+                                button("The tester").action {
+                                    ChooseMenuView { it is Point }.apply {
+                                        openModal(block = true)
+                                        print(output()?.name?.value ?: "Cancel")
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                item("Solvers") {
+                    listview(solvers.observable()) {
+                        cellFormat {
+                            text = item.createInstance().name
+                        }
+                        onUserSelect(clickCount = 1) {
+                            changeFragment(it.createInstance().draw())
                         }
                     }
                 }
@@ -97,9 +110,7 @@ class MainView : View("Hello TornadoFX") {
     private fun updateLists() = runLater {
         updateCanvas()
         list.refresh()
-        fragment?.removeFromParent()
-        fragment = model.item?.getForm() ?: EmptyFragment()
-        hb.add(fragment!!)
+        changeFragment(model.item?.getForm())
     }
 
     private fun updateCanvas() = runLater {
@@ -122,5 +133,11 @@ class MainView : View("Hello TornadoFX") {
     override fun onDock() {
         super.onDock()
         updateLists()
+    }
+
+    fun changeFragment(f : Fragment?) {
+        fragment?.removeFromParent()
+        fragment = f ?: EmptyFragment()
+        hb.add(fragment!!)
     }
 }

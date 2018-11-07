@@ -1,12 +1,9 @@
-package com.yshmgrt.school
+package com.yshmgrt.school.solver
 
-import com.yshmgrt.school.model.IShape
+import tornadofx.*
 
 interface ISolver {
-    var params : List<Param>
+    var name : String
     fun solve() : Any
-}
-
-data class Param(var desc : String = "", var f : (IShape) -> Boolean = {true}) {
-    lateinit var shape : IShape
+    fun draw() : Fragment
 }
